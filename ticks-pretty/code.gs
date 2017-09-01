@@ -29,7 +29,7 @@ function initiateProjTriggers() {
 }
 
 function ticks() {
-  var regex = "`{1}(\\w|\\d)+`{1}",
+  var regex = "`{1}(\\w|\\d|[^`+])+`{1}", // double '\' to escape character
       ticksExist = DocumentApp.getActiveDocument().getBody().findText(regex),
       startPosition, endPosition;
   if (ticksExist) {
