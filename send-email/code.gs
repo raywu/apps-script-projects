@@ -93,23 +93,37 @@ if (!Array.prototype.findIndex) {
 // has been sent successfully.
 var EMAIL_SENT = new Date().toLocaleDateString();
 
-function sendEmails2() {
+function columnPosition(headerName) {
+  var sheet = SpreadsheetApp.getActiveSheet(),
+    values = sheet.getSheetValues(1, 1, 1, sheet.getLastColumn()),
+    columnPosition;
+  columnPosition = values[0].findIndex(function(element) {
+    return element === headerName;
+  });
+  return columnPosition;
+}
+
+function sendEmails() {
   var sheet = SpreadsheetApp.getActiveSheet();
-  var startRow = 2;  // First row of data to process
-  var numRows = 2;   // Number of rows to process
-  // Fetch the range of cells A2:B3
-  var dataRange = sheet.getRange(startRow, 1, numRows, 3)
+  var startRow = 2; // First row of data to process
+  var numRows = sheet.getLastRow(); // all rows with content to process
   // Fetch values for each row in the Range.
-  var data = dataRange.getValues();
+  var data = sheet.getSheetValues(startRow, 1, numRows, sheet.getLastColumn());
   for (var i = 0; i < data.length; ++i) {
     var row = data[i];
-    var emailAddress = row[0];  // First column
-    var message = row[1];       // Second column
-    var emailSent = row[2];     // Third column
-    if (emailSent != EMAIL_SENT) {  // Prevents sending duplicates
+    var emailAddress = row[columnPosition("Email")];
+    var message = row[columnPosition("Message")];
+    var emailSent = row[columnPosition("Sent Date")];
+    if (!emailAddress) {
+      return;
+    }
+    if (!emailSent) {
+      // Prevents sending duplicates
       var subject = "Sending emails from a Spreadsheet";
       MailApp.sendEmail(emailAddress, subject, message);
-      sheet.getRange(startRow + i, 3).setValue(EMAIL_SENT);
+      sheet
+        .getRange(startRow + i, columnPosition("Sent Date") + 1)
+        .setValue(EMAIL_SENT); // columnPosition returns zero index
       // Make sure the cell is updated right away in case the script is interrupted
       SpreadsheetApp.flush();
     }
