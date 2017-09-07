@@ -90,18 +90,42 @@ function tripleTicks() {
       tickSet = retrievetripleTicks(regex),
       pairs = pairtripleTicks(tickSet),
       range,
-      rangeElements;
+      rangeElements,
+      element,
+      text,
+      style = {},
+      commentStyle = {},
+      hasComment,
+      textLength,
+      commentStartPosition;
+
+  if (!pairs) {
+    return;
+  }
+
+  style[DocumentApp.Attribute.BACKGROUND_COLOR] = '#E1F5FE';
+  style[DocumentApp.Attribute.FOREGROUND_COLOR] = '#01579B';
+  style[DocumentApp.Attribute.FONT_FAMILY] = 'Courier New';
+  style[DocumentApp.Attribute.INDENT_FIRST_LINE] = 36;
+  style[DocumentApp.Attribute.INDENT_START] = 36;
+  style[DocumentApp.Attribute.LINE_SPACING] = 1;
+  commentStyle[DocumentApp.Attribute.FOREGROUND_COLOR] = '#9c9c9d';
+  commentStyle[DocumentApp.Attribute.ITALIC] = true;
+
   for (var i = 0, x = pairs.length; i < x; i++) {
-    range = rangeBuilder.addElementsBetween(pairs[i][0].getElement(), pairs[i][1].getElement()).build();
-    rangeElements = range.getRangeElements();
+    range = rangeBuilder.addElementsBetween(pairs[i][0].getElement(), pairs[i][1].getElement()).build(); // build a range that is between the ``` pairs
+    rangeElements = range.getRangeElements(); // array of rangeElement
     rangeElements.forEach(function(rangeElement) {
-      var element = rangeElement.getElement(),
-          text = element.asText();
-      text.editAsText()
-        .setFontFamily('Courier New')
-        .setForegroundColor('#01579B')
-        .setBackgroundColor('#E1F5FE')
-      text.replaceText(regex, '');
+      element = rangeElement.getElement();
+      text = element.asText();
+      hasComment = text.findText("//") || text.findText("/{0,1}\\*{1,2}"); // find comment cues
+      textLength = text.getText().length;
+      element.setAttributes(style)
+        .replaceText(regex, '');
+      if (hasComment) {
+        commentStartPosition = hasComment.getStartOffset(); // hasComment is a partial rangeElement
+        text.setAttributes(commentStartPosition, textLength - 1, commentStyle);
+      }
     })
   }
 }
