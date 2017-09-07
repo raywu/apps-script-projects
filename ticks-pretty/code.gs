@@ -1,11 +1,10 @@
 function onOpen(e) {
   DocumentApp.getUi()
-    .createMenu('My Menu')
+    .createMenu('Tick Pretty')
     .addItem('Ticking', 'ticks')
-    .addItem('triple ticking', 'tripleTicks')
+    .addItem('Triple ticking', 'tripleTicks')
     .addToUi();
   if (ScriptApp.getUserTriggers(DocumentApp.getActiveDocument())) {
-    Logger.log('resetting triggers');
     ScriptApp.getUserTriggers(DocumentApp.getActiveDocument()).forEach(function(trigger) {
       ScriptApp.deleteTrigger(trigger);
     });
