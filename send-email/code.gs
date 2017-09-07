@@ -91,7 +91,7 @@ if (!Array.prototype.findIndex) {
 
 // This constant is written in column C for rows for which an email
 // has been sent successfully.
-var EMAIL_SENT = new Date().getDate();
+var EMAIL_SENT = new Date().toLocaleDateString();
 
 function sendEmails2() {
   var sheet = SpreadsheetApp.getActiveSheet();
