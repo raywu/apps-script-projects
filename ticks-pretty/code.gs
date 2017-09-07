@@ -30,23 +30,18 @@ function initiateProjTriggers() {
 
 function ticks() {
   var regex = "`{1}(\\w|\\d|[^`+])+`{1}", // double '\' to escape character
-      ticksExist = DocumentApp.getActiveDocument().getBody().findText(regex),
+      hasTicks = DocumentApp.getActiveDocument().getBody().findText(regex),
       startPosition, endPosition;
-  if (ticksExist) {
-     if (ticksExist.isPartial()) {
-       startPosition = ticksExist.getStartOffset();
-       endPosition = ticksExist.getEndOffsetInclusive();
-       ticksExist.getElement().asText().editAsText()
-        .setFontFamily(startPosition, endPosition, 'Courier New')
-        .setForegroundColor(startPosition, endPosition, '#FF0000')
-        .setBackgroundColor(startPosition, endPosition, '#FFCDD2')
-        .deleteText(startPosition, startPosition)
-        .deleteText(endPosition - 1, endPosition - 1);
-       ticks();
-     } else {
-       DocumentApp.getUi().alert('The entire range element is included.');
-       Logger.log('The entire range element is included.');
-     }
+  if (hasTicks) {
+    startPosition = hasTicks.getStartOffset();
+    endPosition = hasTicks.getEndOffsetInclusive();
+    hasTicks.getElement().asText().editAsText()
+      .setFontFamily(startPosition, endPosition, 'Courier New')
+      .setForegroundColor(startPosition, endPosition, '#FF0000')
+      .setBackgroundColor(startPosition, endPosition, '#FFCDD2')
+      .deleteText(startPosition, startPosition)
+      .deleteText(endPosition - 1, endPosition - 1);
+    ticks();
   }
 }
 
