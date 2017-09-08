@@ -89,9 +89,41 @@ if (!Array.prototype.findIndex) {
   });
 }
 
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('Blast email')
+      .addItem('Send as ' + SENDER, 'sendEmails')
+      .addItem('Review email template', 'reviewTemplate')
+      .addToUi();
+}
+
 // This constant is written in column C for rows for which an email
 // has been sent successfully.
-var EMAIL_SENT = new Date().toLocaleDateString();
+var EMAIL_SENT = new Date().toLocaleDateString(),
+  SUBJECT = "Chat about your planning needs? - MagicBus",
+  CC = "chris@magicbus.io",
+  BCC = null,
+  SENDER = toProperCase(Session.getEffectiveUser().getEmail().split("@")[0]),
+  FOOTER = "MagicBus is a demand-responsive shuttle platform. Our system adapts to fixed and dynamic routing. As a proof of concept, we run commuter shuttles between cities and suburbs in the Bay Area and Detroit.\n\nVisit us at https://www.magicbus.io",
+  MESSAGE_TEMPLATE = function(firstName, customMessage) {
+    return "Hi " + firstName + ",\n\n" +
+    "I saw you attended California Transportation Planning Conference back in May. My team has been working with corporate shuttle programs, and have started talking with transit agencies to learn more about the needs int he public space.\n\n" +
+    customMessage + " Would you be open to spending 15-20 minutes on a call with me, to help us identify general trends and directions in the public space?\n\n" +
+    "Please let me know. I’d love to set up a time to give you a call next week!\n\n" +
+    "Best,\n" +
+    SENDER + "\n\n" +
+    FOOTER;
+  }
+
+function reviewTemplate() {
+  SpreadsheetApp.getUi().alert(MESSAGE_TEMPLATE("FIRST_NAME", "CUSTOM_MESSAGE_GOES_HERE"))
+}
+
+function toProperCase(word) {
+  var chars = word.split("");
+  chars.splice(0, 1, chars[0].toUpperCase());
+  return chars.join("");
+}
 
 function columnPosition(headerName) {
   var sheet = SpreadsheetApp.getActiveSheet(),
@@ -103,24 +135,45 @@ function columnPosition(headerName) {
   return columnPosition;
 }
 
+function retrieveMessage(firstName, customMessage) {
+  var message = MESSAGE_TEMPLATE(firstName, customMessage);
+  return message;
+}
+
 function sendEmails() {
-  var sheet = SpreadsheetApp.getActiveSheet();
-  var startRow = 2; // First row of data to process
-  var numRows = sheet.getLastRow(); // all rows with content to process
-  // Fetch values for each row in the Range.
-  var data = sheet.getSheetValues(startRow, 1, numRows, sheet.getLastColumn());
+  var ui = SpreadsheetApp.getUi(),
+    sheet = SpreadsheetApp.getActiveSheet(),
+    startRow = 2, // First row of data to process
+    numRows = sheet.getLastRow(), // all rows with content to process
+    // Fetch values for each row in the Range.
+    data = sheet.getSheetValues(startRow, 1, numRows, sheet.getLastColumn()),
+    confirmed;
+
+  confirmed = ui.alert("Are you sure you want to continue?", ui.ButtonSet.YES_NO)
+
+  if (confirmed !== ui.Button.YES) {
+    return;
+  }
+
   for (var i = 0; i < data.length; ++i) {
-    var row = data[i];
-    var emailAddress = row[columnPosition("Email")];
-    var message = row[columnPosition("Message")];
-    var emailSent = row[columnPosition("Sent Date")];
+    var row = data[i],
+      firstName = row[columnPosition("First Name")],
+      emailAddress = row[columnPosition("Email")],
+      customMessage = row[columnPosition("Custom Message")],
+      // TODO retrieve content from a function
+      message = retrieveMessage(firstName, customMessage);
+      emailSent = row[columnPosition("Sent Date")];
     if (!emailAddress) {
       return;
     }
     if (!emailSent) {
       // Prevents sending duplicates
-      var subject = "Sending emails from a Spreadsheet";
-      MailApp.sendEmail(emailAddress, subject, message);
+      var subject = SUBJECT;
+      MailApp.sendEmail(emailAddress, subject, message, {
+        cc: CC,
+        bcc: BCC,
+        name: SENDER + " (MagicBus)"
+      });
       sheet
         .getRange(startRow + i, columnPosition("Sent Date") + 1)
         .setValue(EMAIL_SENT); // columnPosition returns zero index
