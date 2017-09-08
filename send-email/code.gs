@@ -93,22 +93,24 @@ function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui
     .createMenu("Blast email")
-    .addItem("Send as " + SENDER, "sendEmails")
     .addItem("Review email template", "reviewTemplate")
+    .addItem("Test as " + SENDER, "testEmails")
+    .addSeparator()
+    .addItem("Blast as " + SENDER, "blastEmails")
     .addToUi();
 }
 
 // This constant is written in column C for rows for which an email
 // has been sent successfully.
 var EMAIL_SENT = new Date().toLocaleDateString(),
-  SENDER_EMAIL = Session.getEffectiveUser().getEmail();
-(SUBJECT = "Chat about your planning needs? - MagicBus"),
-  (CC = "chris@magicbus.io"),
-  (BCC = SENDER_EMAIL),
-  (SENDER = toProperCase(SENDER_EMAIL.split("@")[0])),
-  (FOOTER =
-    "MagicBus is a demand-responsive shuttle platform. Our system adapts to fixed and dynamic routing. As a proof of concept, we run commuter shuttles between cities and suburbs in the Bay Area and Detroit.\n\nVisit us at https://www.magicbus.io"),
-  (MESSAGE_TEMPLATE = function(firstName, opener, customMessage) {
+  SENDER_EMAIL = Session.getEffectiveUser().getEmail(),
+  SUBJECT = "Chat about your planning needs? - MagicBus",
+  CC = "chris@magicbus.io",
+  BCC = SENDER_EMAIL,
+  SENDER = toProperCase(SENDER_EMAIL.split("@")[0]),
+  FOOTER =
+    "MagicBus is a on-demand shuttle and bus platform. Our system adapts to fixed and dynamic routing. As a proof of concept, we run commuter shuttles between cities and suburbs in the Bay Area and Detroit.\n\nVisit us at https://www.magicbus.io",
+  MESSAGE_TEMPLATE = function(firstName, opener, customMessage) {
     return (
       "Hi " +
       firstName +
@@ -123,7 +125,7 @@ var EMAIL_SENT = new Date().toLocaleDateString(),
       "\n\n" +
       FOOTER
     );
-  });
+  };
 
 function reviewTemplate() {
   SpreadsheetApp.getUi().alert(
@@ -166,7 +168,7 @@ function retrieveMessage(firstName, opener, customMessage) {
   return message;
 }
 
-function sendEmails() {
+function sendEmails(test) {
   var ui = SpreadsheetApp.getUi(),
     sheet = SpreadsheetApp.getActiveSheet(),
     startRow = 2, // First row of data to process
@@ -187,21 +189,21 @@ function sendEmails() {
   for (var i = 0; i < data.length; ++i) {
     var row = data[i],
       firstName = row[columnPosition("First Name")],
-      emailAddress = row[columnPosition("Email")],
+      emailAddress = test ? SENDER_EMAIL : row[columnPosition("Email")],
       opener = row[columnPosition("Opener")],
       customMessage = row[columnPosition("Custom Message")],
       // TODO retrieve content from a function
-      message = retrieveMessage(firstName, opener, customMessage);
-    emailSent = row[columnPosition("Sent Date")];
+      message = retrieveMessage(firstName, opener, customMessage),
+      emailSent = row[columnPosition("Sent Date")];
     if (!emailAddress) {
       return;
     }
-    if (!emailSent) {
+    if (firstName && !emailSent) {
       // Prevents sending duplicates
       var subject = SUBJECT;
       MailApp.sendEmail(emailAddress, subject, message, {
-        cc: CC,
-        bcc: BCC,
+        cc: test ? null : CC,
+        bcc: test ? null : BCC,
         name: SENDER + " (MagicBus)"
       });
       sheet
@@ -211,4 +213,12 @@ function sendEmails() {
       SpreadsheetApp.flush();
     }
   }
+}
+
+function blastEmails() {
+  sendEmails(false);
+}
+
+function testEmails() {
+  sendEmails(true);
 }
