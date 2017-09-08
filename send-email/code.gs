@@ -91,32 +91,58 @@ if (!Array.prototype.findIndex) {
 
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
-  ui.createMenu('Blast email')
-      .addItem('Send as ' + SENDER, 'sendEmails')
-      .addItem('Review email template', 'reviewTemplate')
-      .addToUi();
+  ui
+    .createMenu("Blast email")
+    .addItem("Send as " + SENDER, "sendEmails")
+    .addItem("Review email template", "reviewTemplate")
+    .addToUi();
 }
 
 // This constant is written in column C for rows for which an email
 // has been sent successfully.
 var EMAIL_SENT = new Date().toLocaleDateString(),
-  SUBJECT = "Chat about your planning needs? - MagicBus",
-  CC = "chris@magicbus.io",
-  BCC = null,
-  SENDER = toProperCase(Session.getEffectiveUser().getEmail().split("@")[0]),
-  FOOTER = "MagicBus is a demand-responsive shuttle platform. Our system adapts to fixed and dynamic routing. As a proof of concept, we run commuter shuttles between cities and suburbs in the Bay Area and Detroit.\n\nVisit us at https://www.magicbus.io",
-  MESSAGE_TEMPLATE = function(firstName, opener, customMessage) {
-    return "Hi " + firstName + ",\n\n" +
-    opener + " My team has been working with corporate shuttle programs, and have started talking with transit agencies to learn more about the needs in public transit.\n\n" +
-    customMessage + " Would you be open to spending 15-20 minutes on a call with me, to help us identify general trends and directions, so we can be helpful to your work?\n\n" +
-    "Please let me know. I’d love to set up a time to give you a call next week!\n\n" +
-    "Best,\n" +
-    SENDER + "\n\n" +
-    FOOTER;
-  }
+  SENDER_EMAIL = Session.getEffectiveUser().getEmail();
+(SUBJECT = "Chat about your planning needs? - MagicBus"),
+  (CC = "chris@magicbus.io"),
+  (BCC = SENDER_EMAIL),
+  (SENDER = toProperCase(SENDER_EMAIL.split("@")[0])),
+  (FOOTER =
+    "MagicBus is a demand-responsive shuttle platform. Our system adapts to fixed and dynamic routing. As a proof of concept, we run commuter shuttles between cities and suburbs in the Bay Area and Detroit.\n\nVisit us at https://www.magicbus.io"),
+  (MESSAGE_TEMPLATE = function(firstName, opener, customMessage) {
+    return (
+      "Hi " +
+      firstName +
+      ",\n\n" +
+      opener +
+      " My team builds software that makes bus systems more efficient. In the Bay Area we've powered thousands of rides. So far we've worked mostly with corporations, but we are interested to explore opportunities with government agencies.\n\n" +
+      customMessage +
+      " Would you be open to spending 15 minutes on a call with me to discuss?\n\n" +
+      "Please let me know. I’d love to set up a time to give you a call next week!\n\n" +
+      "Best,\n" +
+      SENDER +
+      "\n\n" +
+      FOOTER
+    );
+  });
 
 function reviewTemplate() {
-  SpreadsheetApp.getUi().alert("SUBJECT: " + SUBJECT + "\n\n" + MESSAGE_TEMPLATE("FIRST_NAME", "OPENER_GOES_HERE", "CUSTOM_MESSAGE_GOES_HERE") + "\n\n**********\nIf you wish to edit this template, open Tools > Script Editor and look for MESSAGE_TEMPLATE()")
+  SpreadsheetApp.getUi().alert(
+    "SUBJECT: " +
+      SUBJECT +
+      "\n\n" +
+      "cc: " +
+      CC +
+      "\n" +
+      "bcc: " +
+      BCC +
+      "\n\n" +
+      MESSAGE_TEMPLATE(
+        "FIRST_NAME",
+        "OPENER_GOES_HERE",
+        "CUSTOM_MESSAGE_GOES_HERE"
+      ) +
+      "\n\n**********\nIf you wish to edit this template, open Tools > Script Editor and look for MESSAGE_TEMPLATE()"
+  );
 }
 
 function toProperCase(word) {
@@ -149,7 +175,10 @@ function sendEmails() {
     data = sheet.getSheetValues(startRow, 1, numRows, sheet.getLastColumn()),
     confirmed;
 
-  confirmed = ui.alert("Are you sure you want to continue?", ui.ButtonSet.YES_NO)
+  confirmed = ui.alert(
+    "Are you sure you want to continue?",
+    ui.ButtonSet.YES_NO
+  );
 
   if (confirmed !== ui.Button.YES) {
     return;
@@ -163,7 +192,7 @@ function sendEmails() {
       customMessage = row[columnPosition("Custom Message")],
       // TODO retrieve content from a function
       message = retrieveMessage(firstName, opener, customMessage);
-      emailSent = row[columnPosition("Sent Date")];
+    emailSent = row[columnPosition("Sent Date")];
     if (!emailAddress) {
       return;
     }
