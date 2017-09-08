@@ -105,10 +105,10 @@ var EMAIL_SENT = new Date().toLocaleDateString(),
   BCC = null,
   SENDER = toProperCase(Session.getEffectiveUser().getEmail().split("@")[0]),
   FOOTER = "MagicBus is a demand-responsive shuttle platform. Our system adapts to fixed and dynamic routing. As a proof of concept, we run commuter shuttles between cities and suburbs in the Bay Area and Detroit.\n\nVisit us at https://www.magicbus.io",
-  MESSAGE_TEMPLATE = function(firstName, customMessage) {
+  MESSAGE_TEMPLATE = function(firstName, opener, customMessage) {
     return "Hi " + firstName + ",\n\n" +
-    "I saw you attended California Transportation Planning Conference back in May. My team has been working with corporate shuttle programs, and have started talking with transit agencies to learn more about the needs int he public space.\n\n" +
-    customMessage + " Would you be open to spending 15-20 minutes on a call with me, to help us identify general trends and directions in the public space?\n\n" +
+    opener + " My team has been working with corporate shuttle programs, and have started talking with transit agencies to learn more about the needs in public transit.\n\n" +
+    customMessage + " Would you be open to spending 15-20 minutes on a call with me, to help us identify general trends and directions, so we can be helpful to your work?\n\n" +
     "Please let me know. I’d love to set up a time to give you a call next week!\n\n" +
     "Best,\n" +
     SENDER + "\n\n" +
@@ -116,7 +116,7 @@ var EMAIL_SENT = new Date().toLocaleDateString(),
   }
 
 function reviewTemplate() {
-  SpreadsheetApp.getUi().alert(MESSAGE_TEMPLATE("FIRST_NAME", "CUSTOM_MESSAGE_GOES_HERE"))
+  SpreadsheetApp.getUi().alert("SUBJECT: " + SUBJECT + "\n\n" + MESSAGE_TEMPLATE("FIRST_NAME", "OPENER_GOES_HERE", "CUSTOM_MESSAGE_GOES_HERE") + "\n\n**********\nIf you wish to edit this template, open Tools > Script Editor and look for MESSAGE_TEMPLATE()")
 }
 
 function toProperCase(word) {
@@ -135,8 +135,8 @@ function columnPosition(headerName) {
   return columnPosition;
 }
 
-function retrieveMessage(firstName, customMessage) {
-  var message = MESSAGE_TEMPLATE(firstName, customMessage);
+function retrieveMessage(firstName, opener, customMessage) {
+  var message = MESSAGE_TEMPLATE(firstName, opener, customMessage);
   return message;
 }
 
@@ -159,9 +159,10 @@ function sendEmails() {
     var row = data[i],
       firstName = row[columnPosition("First Name")],
       emailAddress = row[columnPosition("Email")],
+      opener = row[columnPosition("Opener")],
       customMessage = row[columnPosition("Custom Message")],
       // TODO retrieve content from a function
-      message = retrieveMessage(firstName, customMessage);
+      message = retrieveMessage(firstName, opener, customMessage);
       emailSent = row[columnPosition("Sent Date")];
     if (!emailAddress) {
       return;
