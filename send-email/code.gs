@@ -116,7 +116,7 @@ var EMAIL_SENT = new Date().toLocaleDateString(),
       firstName +
       ",\n\n" +
       opener +
-      " My team builds software that makes bus systems more efficient. In the Bay Area we've powered thousands of rides. So far we've worked mostly with corporations, but we are interested to explore opportunities with government agencies.\n\n" +
+      " My team builds software that makes bus systems more efficient. In the Bay Area, we've powered thousands of trips. So far we've worked mostly with corporations, but we are interested to explore opportunities with government agencies.\n\n" +
       customMessage +
       " Would you be open to spending 15 minutes on a call with me to discuss?\n\n" +
       "Please let me know. I’d love to set up a time to give you a call next week!\n\n" +
