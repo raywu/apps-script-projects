@@ -178,7 +178,9 @@ function sendEmails(test) {
     confirmed;
 
   confirmed = ui.alert(
-    test ? "Ready to send test email to " + SENDER_EMAIL + "?": "Are you sure you want to continue?",
+    test
+      ? "Ready to send test email to " + SENDER_EMAIL + "?"
+      : "Are you sure you want to continue?",
     ui.ButtonSet.YES_NO
   );
 
