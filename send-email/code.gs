@@ -94,7 +94,7 @@ function onOpen() {
   ui
     .createMenu("Blast email")
     .addItem("Review email template", "reviewTemplate")
-    .addItem("Test as " + SENDER, "testEmails")
+    .addItem("Send test as " + SENDER, "testEmails")
     .addSeparator()
     .addItem("Blast as " + SENDER, "blastEmails")
     .addToUi();
@@ -178,7 +178,7 @@ function sendEmails(test) {
     confirmed;
 
   confirmed = ui.alert(
-    "Are you sure you want to continue?",
+    test ? "Ready to send test email to " + SENDER_EMAIL + "?": "Are you sure you want to continue?",
     ui.ButtonSet.YES_NO
   );
 
@@ -198,9 +198,9 @@ function sendEmails(test) {
     if (!emailAddress) {
       return;
     }
-    if (firstName && !emailSent) {
+    if (firstName && (!emailSent || emailSent === "TEST_SENT")) {
       // Prevents sending duplicates
-      var subject = SUBJECT;
+      var subject = test ? "[TEST] " + SUBJECT : SUBJECT;
       MailApp.sendEmail(emailAddress, subject, message, {
         cc: test ? null : CC,
         bcc: test ? null : BCC,
@@ -208,7 +208,7 @@ function sendEmails(test) {
       });
       sheet
         .getRange(startRow + i, columnPosition("Sent Date") + 1)
-        .setValue(EMAIL_SENT); // columnPosition returns zero index
+        .setValue(test ? "TEST_SENT" : EMAIL_SENT); // columnPosition returns zero index
       // Make sure the cell is updated right away in case the script is interrupted
       SpreadsheetApp.flush();
     }
